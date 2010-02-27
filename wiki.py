@@ -4,6 +4,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+import dnsbl
 
 class Page(db.Model):
     name = db.StringProperty
@@ -59,6 +60,10 @@ class Page(db.Model):
 
 class CreatePage(webapp.RequestHandler):
     def post(self):
+        if dnsbl.CheckSpamIP(self.request.remote_addr):
+            path = os.path.join(os.path.dirname(__file__), 'block.html')
+            self.response.out.write(template.render(path))
+            return
         page = Page.new(self.request.get('page'))
         page.content = self.request.get('content')
         page.create_links()
@@ -98,6 +103,10 @@ class EditPage(webapp.RequestHandler):
           "content": page.content}))
     
     def post(self):
+        if dnsbl.CheckSpamIP(self.request.remote_addr):
+            path = os.path.join(os.path.dirname(__file__), 'block.html')
+            self.response.out.write(template.render(path))
+            return
         page = Page.get_by_wiki_name_with_retry(self.request.get('page'))
         if page==None:
         	page = Page.new(self.request.get('page'))
