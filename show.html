@@ -1,0 +1,17 @@
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+  <link href="/assets/master.css" rel="stylesheet" type="text/css" />
+  <title>{{ page_name|escape }}</title>
+ </head>
+ <body>
+  <h1>{{ page_name|escape }}</h1>
+  {{ content }}
+  <hr/>
+  <a href="/edit?page={{ page_name|escape }}">編集</a> | 最終更新時間: {{ date }}<br/>
+  links: 
+{% for link in backlinks %}
+   <a href="show?page={{ link|escape }}">{{ link|escape }}</a>
+{% endfor %}
+ </body>
+</html>

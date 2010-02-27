@@ -1,0 +1,15 @@
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+  <link href="/assets/master.css" rel="stylesheet" type="text/css" />
+  <title>{{ page_name|escape }}を新規作成</title>
+ </head>
+ <body>
+  <h1>{{ page|escape }}を新規作成</h1>
+  <form action="create" method="POST">
+   <input type="hidden" name="page" value="{{ page|escape }}"/>
+   <p class="content-editor"><textarea name="content"></textarea></p>
+   <input type="submit" value="新規作成"/>
+  </form>
+ </body>
+</html>
