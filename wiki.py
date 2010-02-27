@@ -25,7 +25,7 @@ class Page(db.Model):
     
     def html(self):
         html = escape(self.content).replace("\n", "<br/>")
-        html = Page.WikiName.sub(lambda x: '<a href="show?page='+(x.group(2) or x.group(1))+'">'+(x.group(2) or x.group(1))+'</a>', html)
+        html = Page.WikiName.sub(lambda x: '<a href="show?page='+(x.group(2) or x.group(1))+'">'+(x.group(2) or x.group(1))+'</a>'+('' if Page.is_exists(x.group(2) or x.group(1)) else '<span class="new-page">?</span>'), html)
     	url = re.compile("((?:[a-z]+)://[-&;:?$#./0-9a-zA-Z]+)")
         html = url.sub(r'<a href="\1">\1</a>', html)
         return html
@@ -45,6 +45,10 @@ class Page(db.Model):
         
     def wiki_name(self):
         return self.key().name()[1:]
+    
+    @classmethod
+    def is_exists(cls, wiki_name):
+        return cls.get_by_wiki_name_with_retry(wiki_name)!=None
     
     @classmethod
     def new(cls, wiki_name):
