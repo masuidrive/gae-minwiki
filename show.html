@@ -9,9 +9,11 @@
   {{ content }}
   <hr/>
   <a href="/edit?page={{ page_name|escape }}">編集</a> | 最終更新時間: {{ date }}<br/>
+{% if backlinks %}
   links: 
 {% for link in backlinks %}
    <a href="show?page={{ link|escape }}">{{ link|escape }}</a>
 {% endfor %}
+{% endif %}
  </body>
 </html>

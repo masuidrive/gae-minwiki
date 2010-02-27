@@ -22,6 +22,26 @@ class Page(db.Model):
         query = db.Query(Page)
         return query.filter("links =", self.key().name()).fetch(1000)
 
+    def put_with_retry(self):
+        count = 0
+        while count < 3:
+            try:
+                return self.put()
+            except:
+                count += 1
+        else:
+            raise datastore._ToDatastoreError()
+    
+    def get_by_key_name_with_retry(self, key_name):
+        count = 0
+        while count < 3:
+            try:
+                return self.get_by_key_name(key_name)
+            except:
+                count += 1
+        else:
+            raise datastore._ToDatastoreError()
+
 class CreatePage(webapp.RequestHandler):
     def post(self):
         page = Page(key_name = self.request.get('page'))
