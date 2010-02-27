@@ -7,8 +7,17 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import dnsbl
 
+def db_retry(func):
+    count = 0
+    while count < 3:
+        try:
+            return func()
+        except:
+            count += 1
+        else:
+            raise datastore._ToDatastoreError()
+
 class Page(db.Model):
-    name = db.StringProperty
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now=True)
     links = db.StringListProperty()
@@ -32,15 +41,8 @@ class Page(db.Model):
         return query.filter("links =", self.wiki_name()).fetch(1000)
 
     def put_with_retry(self):
-        count = 0
-        while count < 3:
-            try:
-                return self.put()
-            except:
-                count += 1
-        else:
-            raise datastore._ToDatastoreError()
-
+        return db_retry(lambda: self.put())
+        
     def wiki_name(self):
         return self.key().name()[1:]
     
@@ -50,25 +52,22 @@ class Page(db.Model):
     
     @classmethod
     def get_by_wiki_name_with_retry(cls, wiki_name):
-        count = 0
-        while count < 3:
-            try:
-                return cls.get_by_key_name("-"+wiki_name)
-            except:
-                count += 1
-        else:
-            raise datastore._ToDatastoreError()
+        return db_retry(lambda: cls.get_by_key_name("-"+wiki_name))
+
+def checkSpam(self):
+    if dnsbl.CheckSpamIP(self.request.remote_addr):
+        path = os.path.join(os.path.dirname(__file__), 'block.html')
+        self.response.out.write(template.render(path, {'ip': self.request.remote_addr}))
+        return True
+    return False
 
 class CreatePage(webapp.RequestHandler):
     def post(self):
-        if dnsbl.CheckSpamIP(self.request.remote_addr):
-            path = os.path.join(os.path.dirname(__file__), 'block.html')
-            self.response.out.write(template.render(path))
-            return
+        if checkSpam(self): return
         page = Page.new(self.request.get('page'))
         page.content = self.request.get('content')
         page.create_links()
-        page.put()
+        page.put_with_retry()
         self.redirect("/show?page="+urllib.quote(page.wiki_name().encode('utf-8')))
 
     def get(self):
@@ -104,10 +103,7 @@ class EditPage(webapp.RequestHandler):
           "content": page.content}))
     
     def post(self):
-        if dnsbl.CheckSpamIP(self.request.remote_addr):
-            path = os.path.join(os.path.dirname(__file__), 'block.html')
-            self.response.out.write(template.render(path))
-            return
+        if checkSpam(self): return
         page = Page.get_by_wiki_name_with_retry(self.request.get('page'))
         if page==None:
         	page = Page.new(self.request.get('page'))
@@ -117,7 +113,7 @@ class EditPage(webapp.RequestHandler):
             return
         page.content = self.request.get('content')
         page.create_links()
-        page.put()
+        page.put_with_retry()
         self.redirect("/show?page="+urllib.quote(page.wiki_name().encode('utf-8')))
 
 application = webapp.WSGIApplication(
