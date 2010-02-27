@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os, re, urllib
+from xml.sax.saxutils import escape
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
@@ -14,7 +15,7 @@ class Page(db.Model):
     WikiName = re.compile("((?:[A-Z][a-z]+){2,}|\[\[(.*?)\]\])")
     
     def html(self):
-        html = self.content.replace("\n", "<br/>")
+        html = escape(self.content).replace("\n", "<br/>")
         html = Page.WikiName.sub(lambda x: '<a href="show?page='+(x.group(2) or x.group(1))+'">'+(x.group(2) or x.group(1))+'</a>', html)
     	url = re.compile("((?:[a-z]+)://[-&;:?$#./0-9a-zA-Z]+)")
         html = url.sub(r'<a href="\1">\1</a>', html)
