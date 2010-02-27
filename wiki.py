@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os, re, urllib
 from google.appengine.ext import webapp
 from google.appengine.ext import db
@@ -9,21 +10,19 @@ class Page(db.Model):
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now=True)
     links = db.StringListProperty()
-    WikiName = re.compile("((?:[A-Z][a-z]+){2,})")
-    BracketName = re.compile("(\[\[(.*?)\]\])")
+    WikiName = re.compile("((?:[A-Z][a-z]+){2,}|\[\[(.*?)\]\])")
     
     def html(self):
         html = self.content.replace("\n", "<br/>")
-        html = Page.WikiName.sub(r'<a href="/show?page=\1">\1</a>', html)
-        html = Page.BracketName.sub(r'<a href="/show?page=\2">\2</a>', html)
+        html = Page.WikiName.sub(lambda x: '<a href="show?page='+(x.group(2) or x.group(1))+'">'+(x.group(2) or x.group(1))+'</a>', html)
     	url = re.compile("((?:[a-z]+)://[-&;:?$#./0-9a-zA-Z]+)")
         html = url.sub(r'<a href="\1">\1</a>', html)
         return html
     
     def create_links(self):
-        links = Page.WikiName.findall(self.content)
-        for link in Page.BracketName.findall(self.content):
-            links.append(link[1])
+        links = []
+        for link in Page.WikiName.findall(self.content):
+            links.append(link[1] or link[0])
         self.links = links
 
     def backlinks(self):
@@ -41,11 +40,11 @@ class Page(db.Model):
             raise datastore._ToDatastoreError()
 
     def wiki_name(self):
-        return self.key().name()[1:] # 頭の-を取る
+        return self.key().name()[1:]
     
     @classmethod
     def new(cls, wiki_name):
-        return cls(key_name = "-"+wiki_name) # 頭に-を足す
+        return cls(key_name = "-"+wiki_name)
     
     @classmethod
     def get_by_wiki_name_with_retry(cls, wiki_name):
