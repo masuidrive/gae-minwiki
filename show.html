@@ -12,7 +12,7 @@
 {% if backlinks %}
   links: 
 {% for link in backlinks %}
-   <a href="show?page={{ link|escape }}">{{ link|escape }}</a>
+   <a href="show?page={{ link.wiki_name|escape }}">{{ link.wiki_name|escape }}</a>
 {% endfor %}
 {% endif %}
  </body>

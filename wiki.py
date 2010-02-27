@@ -1,4 +1,4 @@
-import os, re
+import os, re, urllib
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
@@ -9,24 +9,23 @@ class Page(db.Model):
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now=True)
     links = db.StringListProperty()
+    WikiName = re.compile("((?:[A-Z][a-z]+){2,})")
+    BracketName = re.compile("(\[\[(.*?)\]\])")
     
     def html(self):
         html = self.content.replace("\n", "<br/>")
-    	wikiname = re.compile("(([A-Z][a-z]+){2,})")
-        html = wikiname.sub(r'<a href="/show?page=\1">\1</a>', html)
+        html = Page.WikiName.sub(r'<a href="/show?page=\1">\1</a>', html)
+        html = Page.BracketName.sub(r'<a href="/show?page=\2">\2</a>', html)
     	url = re.compile("((?:[a-z]+)://[-&;:?$#./0-9a-zA-Z]+)")
         html = url.sub(r'<a href="\1">\1</a>', html)
-        
-
         return html
     
     def create_links(self):
-        link = re.compile("((?:[A-Z][a-z]+){2,})")
-        self.links = link.findall(self.content)
+        self.links = Page.WikiName.findall(self.content)
     
     def backlinks(self):
         query = db.Query(Page)
-        return query.filter("links =", self.key().name()).fetch(1000)
+        return query.filter("links =", self.wiki_name()).fetch(1000)
 
     def put_with_retry(self):
         count = 0
@@ -37,12 +36,20 @@ class Page(db.Model):
                 count += 1
         else:
             raise datastore._ToDatastoreError()
+
+    def wiki_name(self):
+        return self.key().name()[1:] # 頭の-を取る
     
-    def get_by_key_name_with_retry(self, key_name):
+    @classmethod
+    def new(cls, wiki_name):
+        return cls(key_name = "-"+wiki_name) # 頭に-を足す
+    
+    @classmethod
+    def get_by_wiki_name_with_retry(cls, wiki_name):
         count = 0
         while count < 3:
             try:
-                return self.get_by_key_name(key_name)
+                return cls.get_by_key_name("-"+wiki_name)
             except:
                 count += 1
         else:
@@ -50,11 +57,11 @@ class Page(db.Model):
 
 class CreatePage(webapp.RequestHandler):
     def post(self):
-        page = Page(key_name = self.request.get('page'))
+        page = Page.new(self.request.get('page'))
         page.content = self.request.get('content')
         page.create_links()
         page.put()
-        self.redirect("/show?page="+page.key().name())
+        self.redirect("/show?page="+urllib.quote(page.wiki_name().encode('utf-8')))
 
     def get(self):
         page = self.request.get('page')
@@ -63,35 +70,32 @@ class CreatePage(webapp.RequestHandler):
 
 class ShowPage(webapp.RequestHandler):
     def get(self):
-        page = Page.get_by_key_name(self.request.get('page'))
+        page = Page.get_by_wiki_name_with_retry(self.request.get('page'))
         if page==None:
-            self.redirect("/create?page="+self.request.get('page'))
+            self.redirect("/create?page="+urllib.quote(self.request.get('page').encode('utf-8')))
             return
-        backlinks = []
-        for link in page.backlinks():
-            backlinks.append(link.key().name())
         path = os.path.join(os.path.dirname(__file__), 'show.html')
         self.response.out.write(template.render(path, {
-          "page_name": page.key().name(),
+          "page_name": page.wiki_name(),
           "content": page.html(),
-          "backlinks": backlinks,
+          "backlinks": page.backlinks(),
           "date": page.date}))
 
 class EditPage(webapp.RequestHandler):
     def get(self):
-        page = Page.get_by_key_name(self.request.get('page'))
+        page = Page.get_by_wiki_name_with_retry(self.request.get('page'))
         if page==None:
-            self.redirect("/create?page="+self.request.get('page'))
+            self.redirect("/create?page="+urllib.quote(self.request.get('page').encode('utf-8')))
             return
         path = os.path.join(os.path.dirname(__file__), 'edit.html')
         self.response.out.write(template.render(path, {
-          "page_name": page.key().name(),
+          "page_name": page.wiki_name(),
           "content": page.content}))
     
     def post(self):
-        page = Page.get_by_key_name(self.request.get('page'))
+        page = Page.get_by_wiki_name_with_retry(self.request.get('page'))
         if page==None:
-        	page = Page(key_name = self.request.get('page'))
+        	page = Page.new(self.request.get('page'))
         if self.request.get('content')=="":
             page.delete()
             self.redirect("/show?page=FrontPage")
@@ -99,7 +103,7 @@ class EditPage(webapp.RequestHandler):
         page.content = self.request.get('content')
         page.create_links()
         page.put()
-        self.redirect("/show?page="+page.key().name())
+        self.redirect("/show?page="+urllib.quote(page.wiki_name().encode('utf-8')))
 
 application = webapp.WSGIApplication(
   [('/create', CreatePage), ('/show', ShowPage), ('/edit', EditPage)],
