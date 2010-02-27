@@ -21,8 +21,11 @@ class Page(db.Model):
         return html
     
     def create_links(self):
-        self.links = Page.WikiName.findall(self.content)
-    
+        links = Page.WikiName.findall(self.content)
+        for link in Page.BracketName.findall(self.content):
+            links.append(link[1])
+        self.links = links
+
     def backlinks(self):
         query = db.Query(Page)
         return query.filter("links =", self.wiki_name()).fetch(1000)
