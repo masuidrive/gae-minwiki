@@ -1,1 +1,6 @@
 .content-editor textarea { width: 600px; height: 400px; }
+#ft { border-top: 1px solid #444; margin-top: 4px; padding-top: 4px; }
+#ft ul { display: inline; margin: 0; }
+#ft li { list-style: none; display: inline; }
+
+#nav { background: #eee; padding: 4px; }

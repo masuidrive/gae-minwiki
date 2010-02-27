@@ -76,11 +76,14 @@ class ShowPage(webapp.RequestHandler):
         if page==None:
             self.redirect("/create?page="+urllib.quote(self.request.get('page').encode('utf-8')))
             return
+        recent = db.Query(Page).order("-date").fetch(10)
+        
         path = os.path.join(os.path.dirname(__file__), 'show.html')
         self.response.out.write(template.render(path, {
           "page_name": page.wiki_name(),
           "content": page.html(),
           "backlinks": page.backlinks(),
+          "recent": recent,
           "date": page.date}))
 
 class EditPage(webapp.RequestHandler):
