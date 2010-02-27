@@ -11,8 +11,14 @@ class Page(db.Model):
     links = db.StringListProperty()
     
     def html(self):
-    	link = re.compile("(([A-Z][a-z]+){2,})")
-        return link.sub(r'<a href="/show?page=\1">\1</a>', self.content.replace("\n", "<br/>"))
+        html = self.content.replace("\n", "<br/>")
+    	wikiname = re.compile("(([A-Z][a-z]+){2,})")
+        html = wikiname.sub(r'<a href="/show?page=\1">\1</a>', html)
+    	url = re.compile("((?:[a-z]+)://[-&;:?$#./0-9a-zA-Z]+)")
+        html = url.sub(r'<a href="\1">\1</a>', html)
+        
+
+        return html
     
     def create_links(self):
         link = re.compile("((?:[A-Z][a-z]+){2,})")
