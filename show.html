@@ -6,6 +6,9 @@
   <link rel="stylesheet" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css" type="text/css">
   <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/base/base-min.css">
   <link href="/assets/master.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+  <script type="text/javascript" src="/assets/showdown.js"></script>
+  <script type="text/javascript" src="/assets/show.js"></script>
   <title>{{ page_name|escape }}</title>
  </head>
  <body>
@@ -16,7 +19,7 @@
    <div id="bd" role="main">
     <div id="yui-main">
      <div class="yui-b"><div class="yui-g">
-      {{ content }}
+      <div id="content">{{ content }}</div>
      </div></div><!-- /.yui-g .yui-b -->
     </div><!-- /#yui-main -->
    <div id="nav" class="yui-b">

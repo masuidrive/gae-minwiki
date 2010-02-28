@@ -24,8 +24,8 @@ class Page(db.Model):
     WikiName = re.compile("((?:[A-Z][a-z]+){2,}|\[\[(.*?)\]\])")
     
     def html(self):
-        html = escape(self.content).replace("\n", "<br/>")
-        html = Page.WikiName.sub(lambda x: '<a href="show?page='+(x.group(2) or x.group(1))+'">'+(x.group(2) or x.group(1))+'</a>'+('' if Page.is_exists(x.group(2) or x.group(1)) else '<span class="new-page">?</span>'), html)
+        html = escape(self.content).replace("\n","<br/>")
+        html = Page.WikiName.sub(lambda x: '<a title="'+(x.group(2) or x.group(1))+'" href="show?page='+(x.group(2) or x.group(1))+'"'+('' if Page.is_exists(x.group(2) or x.group(1)) else ' class="new-page"')+'>'+(x.group(1))+'</a>', html)
     	url = re.compile("((?:[a-z]+)://[-&;:?$#./0-9a-zA-Z]+)")
         html = url.sub(r'<a href="\1">\1</a>', html)
         return html
@@ -57,6 +57,7 @@ class Page(db.Model):
     @classmethod
     def get_by_wiki_name_with_retry(cls, wiki_name):
         return db_retry(lambda: cls.get_by_key_name("-"+wiki_name))
+
 
 def checkSpam(self):
     if dnsbl.CheckSpamIP(self.request.remote_addr):
