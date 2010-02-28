@@ -1136,7 +1136,7 @@ var _EncodeBackslashEscapes = function(text) {
 
 var _DoAutoLinks = function(text) {
 
-	text = text.replace(/<((https?|ftp|dict):[^'">\s]+)>/gi,"<a href=\"$1\">$1</a>");
+	text = text.replace(/&lt;((https?|ftp|dict):[^'">\s]+)&gt;/gi,"<a href=\"$1\" class=\"external-link\">$1</a>");
 
 	// Email addresses: <address@domain.foo>
 
@@ -1210,7 +1210,7 @@ var _EncodeEmailAddress = function(addr) {
 		return ch;
 	});
 
-	addr = "<a href=\"" + addr + "\">" + addr + "</a>";
+	addr = "<a href=\"" + addr + "\" class=\"external-link\">" + addr + "</a>";
 	addr = addr.replace(/">.+:/g,"\">"); // strip the mailto: from the visible part
 
 	return addr;
