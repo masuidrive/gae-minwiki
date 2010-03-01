@@ -510,7 +510,7 @@ var writeWikiName = function(wholeMatch,m1,m2,newWikiPages) {
 	for(var i=0; !newPage && i<newWikiPages.length; ++i) {
 		newPage = newWikiPages[i]==(m2||m1);
 	}
-	return "<a "+(newPage ? "class=\"new-page\" " : "")+"href=\"show?page="+(m2||m1)+"\">"+(m2||m1)+"</a>"+(newPage ? "<span class=\"new-page\">?<span>" : "");
+	return "<a "+(newPage ? "class=\"new-page\" " : "")+"href=\"/"+(m2||m1)+"\">"+(m2||m1)+"</a>"+(newPage ? "<span class=\"new-page\">?<span>" : "");
 }
 
 var writeAnchorTag = function(wholeMatch,m1,m2,m3,m4,m5,m6,m7) {

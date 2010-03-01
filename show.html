@@ -23,14 +23,14 @@
      </div></div><!-- /.yui-g .yui-b -->
     </div><!-- /#yui-main -->
    <div id="nav" class="yui-b">
-    <p><a href="/show?page=FrontPage">FrontPage</a></p>
+    <p><a href="/FrontPage">FrontPage</a></p>
 
 {% if recent %}
     <div class="recent">
      Recent:
      <ul>
 {% for page in recent %}
-      <li><a href="show?page={{ page.wiki_name|escape }}">{{ page.wiki_name|escape }}</a></li>
+      <li><a href="/{{ page.wiki_name|escape }}">{{ page.wiki_name|escape }}</a></li>
 {% endfor %}
      </ul>
     </div><!-- /.recent -->
@@ -44,7 +44,7 @@
     links:
     <ul>
 {% for link in backlinks %}
-     <li><a href="show?page={{ link.wiki_name|escape }}">{{ link.wiki_name|escape }}</a></li>
+     <li><a href="/{{ link.wiki_name|escape }}">{{ link.wiki_name|escape }}</a></li>
 {% endfor %}
     </ul>
    </div><!-- /.backlinks -->

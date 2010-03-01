@@ -25,7 +25,7 @@ class Page(db.Model):
     
     def html(self):
         html = escape(self.content).replace("\n","<br/>")
-        html = Page.WikiName.sub(lambda x: '<a title="'+(x.group(2) or x.group(1))+'" href="show?page='+(x.group(2) or x.group(1))+'"'+('' if Page.is_exists(x.group(2) or x.group(1)) else ' class="new-page"')+'>'+(x.group(1))+'</a>', html)
+        html = Page.WikiName.sub(lambda x: '<a title="'+(x.group(2) or x.group(1))+'" href="/'+(x.group(2) or x.group(1))+'"'+('' if Page.is_exists(x.group(2) or x.group(1)) else ' class="new-page"')+'>'+(x.group(1))+'</a>', html)
     	url = re.compile("((?:[a-z]+)://[-&;:?$#./0-9a-zA-Z]+)")
         html = url.sub(r'<a href="\1">\1</a>', html)
         return html
@@ -73,7 +73,7 @@ class CreatePage(webapp.RequestHandler):
         page.content = self.request.get('content')
         page.create_links()
         page.put_with_retry()
-        self.redirect("/show?page="+urllib.quote(page.wiki_name().encode('utf-8')))
+        self.redirect("/"+urllib.quote(page.wiki_name().encode('utf-8')))
 
     def get(self):
         page = self.request.get('page')
@@ -82,10 +82,12 @@ class CreatePage(webapp.RequestHandler):
 
 class ShowPage(webapp.RequestHandler):
     def get(self):
-        page = Page.get_by_wiki_name_with_retry(self.request.get('page'))
+        name = self.request.get('page') or urllib.unquote(unicode(self.request.path[1:])).encode('raw_unicode_escape').decode('utf-8')
+        if name=='':
+            return self.redirect("/FrontPage")
+        page = Page.get_by_wiki_name_with_retry(name)
         if page==None:
-            self.redirect("/create?page="+urllib.quote(self.request.get('page').encode('utf-8')))
-            return
+            return self.redirect("/create?page="+urllib.quote(name))
         recent = db.Query(Page).order("-date").fetch(10)
         
         path = os.path.join(os.path.dirname(__file__), 'show.html')
@@ -114,14 +116,14 @@ class EditPage(webapp.RequestHandler):
         	page = Page.new(self.request.get('page'))
         if self.request.get('content')=="":
             page.delete()
-            self.redirect("/show?page=FrontPage")
+            self.redirect("/FrontPage")
             return
         page.content = self.request.get('content')
         page.create_links()
         page.put_with_retry()
-        self.redirect("/show?page="+urllib.quote(page.wiki_name().encode('utf-8')))
+        self.redirect("/"+urllib.quote(page.wiki_name().encode('utf-8')))
 
 application = webapp.WSGIApplication(
-  [('/create', CreatePage), ('/show', ShowPage), ('/edit', EditPage)],
+  [('/create', CreatePage), ('/edit', EditPage), ('/show', ShowPage), ('/.*', ShowPage),],
   debug=True)
 run_wsgi_app(application)
