@@ -87,7 +87,7 @@ class ShowPage(webapp.RequestHandler):
             return self.redirect("/FrontPage")
         page = Page.get_by_wiki_name_with_retry(name)
         if page==None:
-            return self.redirect("/create?page="+urllib.quote(name))
+            return self.redirect("/create?page="+urllib.quote(name.encode('utf-8')))
         recent = db.Query(Page).order("-date").fetch(10)
         
         path = os.path.join(os.path.dirname(__file__), 'show.html')
@@ -102,8 +102,7 @@ class EditPage(webapp.RequestHandler):
     def get(self):
         page = Page.get_by_wiki_name_with_retry(self.request.get('page'))
         if page==None:
-            self.redirect("/create?page="+urllib.quote(self.request.get('page').encode('utf-8')))
-            return
+            return self.redirect("/create?page="+urllib.quote(self.request.get('page').encode('utf-8')))
         path = os.path.join(os.path.dirname(__file__), 'edit.html')
         self.response.out.write(template.render(path, {
           "page_name": page.wiki_name(),
@@ -116,8 +115,7 @@ class EditPage(webapp.RequestHandler):
         	page = Page.new(self.request.get('page'))
         if self.request.get('content')=="":
             page.delete()
-            self.redirect("/FrontPage")
-            return
+            return self.redirect("/FrontPage")
         page.content = self.request.get('content')
         page.create_links()
         page.put_with_retry()
