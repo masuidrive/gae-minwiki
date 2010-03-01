@@ -6,5 +6,15 @@ api_version: 1
 handlers:
 - url: /assets
   static_dir: assets
+
+- url: /favicon.ico
+  static_files: assets/favicon.ico
+  upload: assets/favicon.ico
+
+- url: /robots.txt
+  static_files: assets/robots.txt
+  upload: assets/robots.txt
+
 - url: /.*
   script: wiki.py
+
