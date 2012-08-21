@@ -25,6 +25,16 @@
    <div id="nav" class="yui-b">
     <p><a href="/FrontPage">FrontPage</a></p>
 
+    <div class="search">
+      Search:
+      <div>
+        <form action="/search" method="GET">
+          <input type="text" name="q" size="12"/>
+          <input type="submit" value="Search"/>
+        </form>
+      </div><br/>
+    </div>
+
 {% if recent %}
     <div class="recent">
      Recent:

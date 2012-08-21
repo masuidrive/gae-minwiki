@@ -1,0 +1,18 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+  <link rel="stylesheet" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css" type="text/css">
+  <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/base/base-min.css">
+  <link href="/assets/master.css" rel="stylesheet" type="text/css" />
+  <title>{{ query|escape }}</title>
+ </head>
+ <body>
+  <form action="/search" method="GET">
+    <input type="text" name="q" value="{{ query|escape }}"/>
+    <input type="submit" value="検索"/>
+{{ pages.size|escape }}
+  </form>
+ </body>
+</html>
